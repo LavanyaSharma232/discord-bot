@@ -111,7 +111,7 @@ async def register(interaction: discord.Interaction, repo_name: str, channel: di
     conn.close()
 
     # Railway automatically provides its public domain as an environment variable.
-    base_url = os.getenv('RAILWAY_PUBLIC_DOMAIN', 'your-bot-name.up.railway.app') 
+    base_url = os.getenv('RAILWAY_PUBLIC_DOMAIN', 'discord-bot-production-89dc.up.railway.app') 
     payload_url = f"https://{base_url}/github-webhook/{repo_id}"
 
     embed = discord.Embed(title="✅ Repository Registered Successfully!", color=discord.Color.green())
@@ -214,6 +214,7 @@ def run_bot():
 bot_thread = Thread(target=run_bot)
 bot_thread.daemon = True
 bot_thread.start()
+
 
 
 
