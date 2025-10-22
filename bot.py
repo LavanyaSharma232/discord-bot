@@ -23,7 +23,7 @@ import re
 load_dotenv()
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 DATABASE_URL = os.getenv('DATABASE_URL')
-
+ANNOUNCEMENT_CHANNEL_ID = int(os.getenv('ANNOUNCEMENT_CHANNEL_ID', 0))
 # --- DATABASE SETUP ---
 def get_db_connection():
     """Establishes a connection to the database."""
@@ -83,27 +83,31 @@ def get_points_from_pr_labels(repo_name, issue_number):
     return 0
 
 # --- NEW ADMIN SLASH COMMANDS ---
-@bot.tree.command(name="register", description="Register or update your GitHub repository for scoring.")
-@app_commands.describe(repo_name="Your repository in 'Username/RepoName' format.", channel="The channel for leaderboard announcements.")
+@bot.tree.command(name="register", description="Register a new GitHub repository for scoring.")
+@app_commands.describe(repo_name="Your repository in 'Username/RepoName' format.")
 @app_commands.checks.has_permissions(administrator=True)
-async def register(interaction: discord.Interaction, repo_name: str, channel: discord.TextChannel):
-    await interaction.response.defer(ephemeral=True) # Acknowledge privately
+async def register(interaction: discord.Interaction, repo_name: str):
+    # First, add a check to make sure the admin has set up the variable
+    if ANNOUNCEMENT_CHANNEL_ID == 0:
+        await interaction.response.send_message("Error: The bot owner has not configured the `ANNOUNCEMENT_CHANNEL_ID` environment variable.", ephemeral=True)
+        return
+
+    await interaction.response.defer(ephemeral=True)
     guild_id = interaction.guild.id
     admin_user_id = interaction.user.id
     webhook_secret = secrets.token_hex(16)
     
     conn = get_db_connection()
     cur = conn.cursor()
-    # "Upsert" logic: Update if the server is already registered, otherwise insert a new record.
+    
+    # We use the ANNOUNCEMENT_CHANNEL_ID read from the environment
     cur.execute(
         """
         INSERT INTO repositories (guild_id, repo_name, webhook_secret, channel_id, admin_user_id) 
         VALUES (%s, %s, %s, %s, %s)
-        ON CONFLICT (guild_id) 
-        DO UPDATE SET repo_name = EXCLUDED.repo_name, webhook_secret = EXCLUDED.webhook_secret, channel_id = EXCLUDED.channel_id, admin_user_id = EXCLUDED.admin_user_id
         RETURNING id;
         """,
-        (guild_id, repo_name, webhook_secret, channel.id, admin_user_id)
+        (guild_id, repo_name, webhook_secret, ANNOUNCEMENT_CHANNEL_ID, admin_user_id)
     )
     repo_id = cur.fetchone()[0]
     conn.commit()
@@ -214,6 +218,7 @@ def run_bot():
 bot_thread = Thread(target=run_bot)
 bot_thread.daemon = True
 bot_thread.start()
+
 
 
 
