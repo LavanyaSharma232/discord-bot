@@ -77,7 +77,7 @@ def get_points_from_pr_labels(repo_name, issue_number):
         return 0
     data = response.json()
     labels = {label['name'].lower() for label in data.get('labels', [])}
-    if 'hard' in labels: return 15
+    if 'hard' in labels: return 20
     elif 'medium' in labels: return 10
     elif 'easy' in labels: return 5
     return 0
@@ -214,6 +214,7 @@ def run_bot():
 bot_thread = Thread(target=run_bot)
 bot_thread.daemon = True
 bot_thread.start()
+
 
 
 
