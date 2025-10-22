@@ -3,4 +3,5 @@
 #  The Startup Instructions: Procfile
 # ===================================================================================
 #
-worker: python bot.py
+
+web: gunicorn bot:app --timeout 120
