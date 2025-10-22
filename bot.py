@@ -77,7 +77,7 @@ def get_points_from_pr_labels(repo_name, issue_number):
         return 0
     data = response.json()
     labels = {label['name'].lower() for label in data.get('labels', [])}
-    if 'hard' in labels: return 20
+    if 'hard' in labels: return 15
     elif 'medium' in labels: return 10
     elif 'easy' in labels: return 5
     return 0
@@ -216,3 +216,4 @@ if __name__ == '__main__':
     flask_thread.daemon = True
     flask_thread.start()
     bot.run(DISCORD_TOKEN)
+
