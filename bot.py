@@ -206,14 +206,15 @@ def github_webhook(repo_id):
     return ('', 204)
 
 # --- RUN EVERYTHING ---
-def run_flask():
-    # Railway provides the PORT environment variable for the web server.
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
-
-if __name__ == '__main__':
-    flask_thread = Thread(target=run_flask)
-    flask_thread.daemon = True
-    flask_thread.start()
+def run_bot():
+    # We run the bot in a separate thread so it doesn't block the web server.
     bot.run(DISCORD_TOKEN)
+
+# Start the bot in a separate thread when the script is executed.
+bot_thread = Thread(target=run_bot)
+bot_thread.daemon = True
+bot_thread.start()
+
+
+
 
